@@ -25,6 +25,10 @@ player.set_instrument(0)
 # Variables entre midi / pygame
 running = True
 time_to_wait = 0
+total_time = 0
+for track in mid.tracks:
+    total_time += sum(l.time for l in track)
+print("Total ticks = " + str(total_time))
 
 # Fonction pour afficher rectangle
 def show_rectangle(position, size=(50, 50), color=(255, 0, 0), duration=0.5):
