@@ -20,7 +20,6 @@ RECT_LOCK = threading.Lock() # éviter les conflits
 
 pygame.midi.init()
 player = pygame.midi.Output(0)
-player.set_instrument(0)
 
 # Variables entre midi / pygame
 running = True
@@ -42,12 +41,15 @@ def play_midi():
     tempo = 500000  # valeur par défaut
     for track in mid.tracks:
         for msg in track:
+            print(msg)
             if (running):
                 time.sleep(tick2second(msg.time, mid.ticks_per_beat, tempo))
                 if msg.type == 'note_on':
+                    player.set_instrument(msg.channel)
                     player.note_on(msg.note, msg.velocity)
                     show_rectangle(position=(random.random() * WINDOW_WIDTH, random.random() * WINDOW_HEIGHT))  # exemple de position
                 elif msg.type == 'note_off':
+                    player.set_instrument(msg.channel)
                     player.note_off(msg.note, msg.velocity)
                 elif msg.type == 'set_tempo':
                     tempo = msg.tempo
