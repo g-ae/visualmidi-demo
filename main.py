@@ -39,20 +39,30 @@ def show_rectangle(position, size=(50, 50), color=(255, 0, 0), duration=0.5):
 # Fonction pour jouer le MIDI dans un thread
 def play_midi():
     tempo = 500000  # valeur par défaut
+    player.set_instrument(0, 2) # canal 2 => piano
+    player.set_instrument(56, 11) # canal 11 => trompette
     for track in mid.tracks:
         for msg in track:
-            print(msg)
             if (running):
                 time.sleep(tick2second(msg.time, mid.ticks_per_beat, tempo))
-                if msg.type == 'note_on':
-                    player.set_instrument(msg.channel)
-                    player.note_on(msg.note, msg.velocity)
-                    show_rectangle(position=(random.random() * WINDOW_WIDTH, random.random() * WINDOW_HEIGHT))  # exemple de position
-                elif msg.type == 'note_off':
-                    player.set_instrument(msg.channel)
-                    player.note_off(msg.note, msg.velocity)
-                elif msg.type == 'set_tempo':
-                    tempo = msg.tempo
+                match msg.type:
+                    case 'note_on':
+                        print(msg)
+                        player.note_on(msg.note, msg.velocity, msg.channel)
+                        show_rectangle(position=(random.random() * WINDOW_WIDTH, random.random() * WINDOW_HEIGHT))  # exemple de position
+                    case 'note_off':
+                        player.note_off(msg.note, msg.velocity, msg.channel)
+                    case 'set_tempo':
+                        tempo = msg.tempo
+                    case 'control_change':
+                        player.write_short(0xB0 + msg.channel, msg.control, msg.value)
+                    case 'pitchwheel':
+                        lsb = msg.pitch & 0x7F
+                        msb = (msg.pitch >> 7) & 0x7F
+                        player.write_short(0xE0 + msg.channel, lsb, msb)
+                    case _:
+                        print(msg)
+
 
 # Lancer le thread 
 midi_thread = threading.Thread(target=play_midi)
